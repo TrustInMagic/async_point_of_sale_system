@@ -63,9 +63,9 @@ async def take_order():
         elif int(order_id) > 20:
             print("Please enter a number below 21.")
             continue
-        
+    
         order_id_list.append(int(order_id))
- 
+
         _ = asyncio.create_task(i.get_stock(int(order_id)))
         item = asyncio.create_task(i.get_item(int(order_id)))
       
@@ -87,7 +87,31 @@ async def take_order():
                 order_list.remove(each_item)
     
     return order_list
-   
+
+
+async def main_logic():
+    menus, rest_of_order = Order.make_menus(await take_order())
+    subtotal, tax, total = Order.print_order_summary(menus, rest_of_order)
+    print()
+    print(f"Subtotal: ${subtotal} \nTax: ${tax} \nTotal: ${total}")
+        
+    purchase_decision = input(f"Would you like to purchase this order for ${total}? ")
+
+    if purchase_decision == "no":
+        print("No problem, please come again!")
+        another_order = input("Would you like to make another order (yes/no)? ")
+        if another_order == "yes":
+            await main_logic()
+        if another_order == "no":
+            print("Goodbye!")
+    if purchase_decision == "yes":
+        print("Thank you for your order!")
+        another_order = input("Would you like to make another order (yes/no)? ")
+        if another_order == "yes":
+            await main_logic()
+        if another_order == "no":
+            print("Goodbye!")
+
 
 async def main():
     i = Inventory()
@@ -96,28 +120,7 @@ async def main():
 
     catalogue = await i.get_catalogue()
     display_catalogue(catalogue)
-
-    menus, rest_of_order = Order.make_menus(await take_order())
-    subtotal, tax, total = Order.print_order_summary(menus, rest_of_order)
-    print()
-    print(f"Subtotal: ${subtotal} \nTax: ${tax} \nTotal: ${total}")
-    
-    purchase_decision = input(f"Would you like to purchase this order for ${total}? ")
-
-    if purchase_decision == "no":
-        print("No problem, please come again!")
-        another_order = input("Would you like to make another order (yes/no)? ")
-        if another_order == "yes":
-            await main()
-        if another_order == "no":
-            print("Goodbye!")
-    if purchase_decision == "yes":
-        print("Thank you for your order!")
-        another_order = input("Would you like to make another order (yes/no)? ")
-        if another_order == "yes":
-            await main()
-        if another_order == "no":
-            print("Goodbye!")
+    await main_logic()
 
 
 
